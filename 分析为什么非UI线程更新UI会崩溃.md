@@ -213,7 +213,7 @@ ViewParent 是一个接口,ViewRootImpl是它的实现类,那么我们继续追�
     }
 ```
 你可以看到这样一个注释 // Tell the activity manager we have resumed.这个方法是可以回调Activity的onResume。具体怎么回调这里就不解释，我会在下几篇博客中去分析Activity的生命周期。
-在代码中我们可以看见一个WindowManager类，这个类是用来控制窗口显示的，而它的addView是用来添加窗口。WindowManagerImpl是WindowManager的实现类，WindowManagerImpl的addView方法代码如下:
+在代码中我们可以看见一个WindowManager类，这个类是用来控制窗口显示的，而它的addView是用来添加视图。WindowManagerImpl是WindowManager的实现类，WindowManagerImpl的addView方法代码如下:
 ```
 public void addView(@NonNull View view, @NonNull ViewGroup.LayoutParams params) {
         applyDefaultToken(params);
