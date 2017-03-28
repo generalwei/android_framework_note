@@ -147,9 +147,9 @@ ViewParent 是一个接口,ViewRootImpl是它的实现类,那么我们继续追�
         mThread = Thread.currentThread();
      ...
 ```
-#####为什么在onResume之前非UI线程也能更新UI
-发现mThread是在ViewRootImpl创建的时候赋值，这个的线程一定是UI线程。所以当前线程不是UI线程的时候会抛异常。
-但是有时候在也能在非UI线程中更新，后来我们发现在onResume之前用非UI线程更新能UI，而onResume之后就不行了。这是因为onResume之前还没有创建ViewRootImpl这个类，ActivityThread类中有一个handleResumeActivity方法，这个方法是用来回调Activity的onResume方法，具体的看如下代码:
+发现mThread是在ViewRootImpl创建的时候赋值，这个的线程一定是UI线程。所以当前线程不是UI线程的时候会抛异常。<br>
+<b>为什么在onResume之前非UI线程也能更新UI</b><br>
+有时候在也能在非UI线程中更新，后来我们发现在onResume之前用非UI线程更新能UI，而onResume之后就不行了。这是因为onResume之前还没有创建ViewRootImpl这个类，ActivityThread类中有一个handleResumeActivity方法，这个方法是用来回调Activity的onResume方法，具体的看如下代码:
 ```java
  final void handleResumeActivity(IBinder token,boolean clearHide, boolean   isForward, boolean reallyResume, int seq, String reason) {
     r = performResumeActivity(token, clearHide, reason);
@@ -213,7 +213,7 @@ ViewParent 是一个接口,ViewRootImpl是它的实现类,那么我们继续追�
     }
 ```
 你可以看到这样一个注释 // Tell the activity manager we have resumed.这个方法是可以回调Activity的onResume。具体怎么回调这里就不解释，我会在下几篇博客中去分析Activity的生命周期。
-在代码中我们可以看见一个WindowManager类，这个类是用来控制窗口显示的，而它的addView是用用来添加窗口。WindowManagerImpl是WindowManager的实现类，WindowManagerImpl的addView方法代码如下:
+在代码中我们可以看见一个WindowManager类，这个类是用来控制窗口显示的，而它的addView是用来添加窗口。WindowManagerImpl是WindowManager的实现类，WindowManagerImpl的addView方法代码如下:
 ```
 public void addView(@NonNull View view, @NonNull ViewGroup.LayoutParams params) {
         applyDefaultToken(params);
