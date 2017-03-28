@@ -279,4 +279,6 @@ mGlobal是WindowManagerGlobal的对象，继续看mGlobal.addView的代码:
     }
 ```
 你可以看做ViewRootImpl的初始化时在这里进行的，这就是为什么在onResume之前可以更新UI了。
+#####为什么要这么设计呢？
+因为所有的UI控件都是非线程安全的，如果在非UI线程更新UI会造成UI混乱。所以一般我们会在Handler中更新UI。
 如有写的不当之处，请多指教。
