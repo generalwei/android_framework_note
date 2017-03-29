@@ -152,6 +152,17 @@ ViewParent 是一个接口,ViewRootImpl是它的实现类,那么我们继续追�
 有时候在也能在非UI线程中更新，后来我们发现在onResume之前用非UI线程更新能UI，而onResume之后就不行了。这是因为onResume之前还没有创建ViewRootImpl这个类，ActivityThread类中有一个handleResumeActivity方法，这个方法是用来回调Activity的onResume方法，具体的看如下代码:
 ```java
  final void handleResumeActivity(IBinder token,boolean clearHide, boolean   isForward, boolean reallyResume, int seq, String reason) {
+    ActivityClientRecord r = mActivities.get(token);
+    if (!checkAndUpdateLifecycleSeq(seq, r, "resumeActivity")) {
+        return;
+    }
+
+    // If we are getting ready to gc after going to the background, well
+    // we are back active so skip it.
+    unscheduleGcIdler();
+    mSomeActivitiesChanged = true;
+
+    // TODO Push resumeArgs into the activity for consideration
     r = performResumeActivity(token, clearHide, reason);
     if (r != null) {
             if (r.window == null && !a.mFinished && willBeVisible) {
@@ -212,8 +223,30 @@ ViewParent 是一个接口,ViewRootImpl是它的实现类,那么我们继续追�
         }
     }
 ```
-你可以看到这样一个注释 // Tell the activity manager we have resumed.这个方法是可以回调Activity的onResume。具体怎么回调这里就不解释，我会在下几篇博客中去分析Activity的生命周期。
-在代码中我们可以看见一个WindowManager类，这个类是用来控制窗口显示的，而它的addView是用来添加视图。WindowManagerImpl是WindowManager的实现类，WindowManagerImpl的addView方法代码如下:
+我们可以看见这样一个方法performResumeActivity()，它的源码如下:
+```
+public final ActivityClientRecord performResumeActivity(IBinder token,boolean clearHide, String reason) {
+    ...
+    if (r != null && !r.activity.mFinished) {
+        ...
+        r.activity.performResume();
+        ...
+    }
+}
+```
+这里可以看见它调用了activity.performResume(),那么再继续查看下面的源码:
+```
+final void performResume() {
+    performRestart();
+    ...
+    mInstrumentation.callActivityOnResume(this);
+    ...
+    onPostResume();
+    ...   
+}
+```
+performRestart()方法主要是为了执行回调onRestart方法，具体内容就不做分析了。mInstrumentation.callActivityOnResume()方法则是为了回调Activity的OnResume()方法。onPostResume()方法这是为了激活Window。
+在handleResumeActivity()方法中我们可以看见一个WindowManager类，这个类是用来控制窗口显示的，而它的addView是用来添加视图。WindowManagerImpl是WindowManager的实现类，WindowManagerImpl的addView方法代码如下:
 ```
 public void addView(@NonNull View view, @NonNull ViewGroup.LayoutParams params) {
         applyDefaultToken(params);
